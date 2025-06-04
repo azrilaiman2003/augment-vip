@@ -1,19 +1,21 @@
 # Augment VIP (Python Version)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-green.svg)
 
-A utility toolkit for Augment VIP users, providing tools to manage and clean VS Code databases. This is the Python version, which offers better cross-platform compatibility and eliminates the need for external dependencies.
+A comprehensive utility toolkit for managing telemetry IDs and cleaning databases across multiple IDEs. This Python version supports JetBrains IDEs, VS Code variants, and provides excellent cross-platform compatibility.
 
 ## 🚀 Features
 
+- **Multi-IDE Support**: JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, etc.) and VS Code variants (VS Code, Cursor, VSCodium, etc.)
 - **Database Cleaning**: Remove Augment-related entries from VS Code databases
-- **Telemetry ID Modification**: Generate random telemetry IDs for VS Code to enhance privacy
+- **Telemetry ID Modification**: Generate random telemetry IDs to enhance privacy
 - **Cross-Platform Support**: Works on Windows, macOS, and Linux
-- **Python-Based**: Uses Python for better cross-platform compatibility
+- **Python-Based**: Uses Python for better cross-platform compatibility and no external system dependencies
 - **Virtual Environment**: Isolates dependencies to avoid conflicts
-- **Safe Operations**: Creates backups before making any changes
-- **User-Friendly**: Clear, color-coded output and detailed status messages
+- **Safe Operations**: Creates backups before making any changes and locks modified files
+- **Flexible CLI**: Choose specific IDEs or run on all detected installations
+- **Status Detection**: See which IDEs are detected on your system
 
 ## 📋 Requirements
 
@@ -67,58 +69,100 @@ pip install -e .
 
 ## 🔧 Usage
 
+### Check IDE Status
+
+See which IDEs are detected on your system:
+
+```bash
+augment-vip status
+```
+
+This will show:
+- JetBrains configuration directory location
+- JetBrains ID files status
+- VS Code variant installations found
+- Configuration file locations
+
+### Modify Telemetry IDs (All IDEs)
+
+To modify telemetry IDs across all detected IDEs:
+
+```bash
+augment-vip modify-ids
+```
+
+### Target Specific IDEs
+
+**JetBrains IDEs Only:**
+```bash
+augment-vip jetbrains
+# or
+augment-vip modify-ids --jetbrains
+```
+
+**VS Code Variants Only:**
+```bash
+augment-vip vscode
+# or
+augment-vip modify-ids --vscode
+```
+
+**Legacy VS Code Mode (single installation):**
+```bash
+augment-vip modify-ids --legacy
+```
+
 ### Clean VS Code Databases
 
 To remove Augment-related entries from VS Code databases:
 
 ```bash
-# If using the virtual environment
-.venv/bin/augment-vip clean  # macOS/Linux
-.venv\Scripts\augment-vip clean  # Windows
-
-# If installed globally
 augment-vip clean
 ```
 
-This will:
-- Detect your operating system
-- Find VS Code database files
-- Create backups of each database
-- Remove entries containing "augment" from the databases
-- Report the results
-
-### Modify VS Code Telemetry IDs
-
-To change the telemetry IDs in VS Code's storage.json file:
-
-```bash
-# If using the virtual environment
-.venv/bin/augment-vip modify-ids  # macOS/Linux
-.venv\Scripts\augment-vip modify-ids  # Windows
-
-# If installed globally
-augment-vip modify-ids
-```
-
-This will:
-- Locate the VS Code storage.json file
-- Generate a random 64-character hex string for machineId
-- Generate a random UUID v4 for devDeviceId
-- Create a backup of the original file
-- Update the file with the new random values
-
 ### Run All Tools
 
-To run both tools at once:
-
+**All IDEs:**
 ```bash
-# If using the virtual environment
-.venv/bin/augment-vip all  # macOS/Linux
-.venv\Scripts\augment-vip all  # Windows
-
-# If installed globally
 augment-vip all
 ```
+
+**Specific IDE Types:**
+```bash
+# JetBrains only
+augment-vip all --jetbrains-only
+
+# VS Code variants only
+augment-vip all --vscode-only
+
+# Skip database cleaning
+augment-vip all --skip-clean
+```
+
+## 🎯 Supported IDEs
+
+### JetBrains IDEs
+- IntelliJ IDEA (Community & Ultimate)
+- PyCharm (Community & Professional)
+- WebStorm
+- PhpStorm
+- CLion
+- DataGrip
+- GoLand
+- RubyMine
+- Rider
+- AppCode
+- And other JetBrains products
+
+### VS Code Variants
+- Visual Studio Code
+- Visual Studio Code Insiders
+- VSCodium
+- Cursor
+- Windsurf
+- Zed
+- code-server
+- Other VS Code-based editors
 
 ## 📁 Project Structure
 
@@ -129,25 +173,62 @@ augment-vip/
 │   ├── __init__.py         # Package initialization
 │   ├── cli.py              # Command-line interface
 │   ├── db_cleaner.py       # Database cleaning functionality
-│   ├── id_modifier.py      # Telemetry ID modification functionality
+│   ├── id_modifier.py      # Multi-IDE telemetry ID modification
 │   └── utils.py            # Utility functions
 ├── install.py              # Installation script
-├── README.md               # This file
+├── multi_ide_modifier.py   # Standalone script (equivalent to Rust version)
+├── README.md               # Main documentation
+├── README-python.md        # This file
 ├── requirements.txt        # Package dependencies
 └── setup.py                # Package setup script
 ```
 
 ## 🔍 How It Works
 
-The database cleaning tool works by:
+### JetBrains IDE Support
 
-1. **Finding Database Locations**: Automatically detects the correct paths for VS Code databases based on your operating system.
+The tool modifies JetBrains telemetry by:
 
-2. **Creating Backups**: Before making any changes, the tool creates a backup of each database file.
+1. **Finding JetBrains Config**: Searches common configuration directories across platforms
+2. **Updating ID Files**: Modifies `PermanentDeviceId` and `PermanentUserId` files
+3. **Generating New IDs**: Creates fresh UUID v4 identifiers
+4. **Locking Files**: Makes files read-only and protected against modification
 
-3. **Cleaning Databases**: Uses SQLite commands to remove entries containing "augment" from the databases.
+### VS Code Variant Support
 
-4. **Reporting Results**: Provides detailed feedback about the operations performed.
+For VS Code-based editors:
+
+1. **Multi-Variant Detection**: Finds all VS Code variants (VS Code, Cursor, VSCodium, etc.)
+2. **Storage Modification**: Updates `storage.json` files with new telemetry IDs
+3. **Database Cleaning**: Removes Augment-related entries from state databases
+4. **Workspace Support**: Handles both global and workspace-specific configurations
+
+### Database Cleaning
+
+The database cleaning functionality:
+
+1. **Finds Database Files**: Locates SQLite databases in VS Code storage directories
+2. **Creates Backups**: Safely backs up databases before modification
+3. **Removes Entries**: Uses SQL queries to remove Augment-related data
+4. **Processes Backups**: Also cleans backup database files
+
+## 🛠️ Standalone Script
+
+A standalone script `multi_ide_modifier.py` is provided that replicates the exact functionality of the original Rust code:
+
+```bash
+# Run standalone script
+python multi_ide_modifier.py
+
+# Help
+python multi_ide_modifier.py --help
+```
+
+This script:
+- Requires no installation
+- Works independently of the package
+- Provides the same multi-IDE support
+- Uses base64 encoded strings (like the Rust version)
 
 ## 🛠️ Troubleshooting
 
@@ -166,20 +247,57 @@ Permission denied
 On macOS/Linux, you may need to make the scripts executable:
 ```bash
 chmod +x install.py
+chmod +x multi_ide_modifier.py
 ```
 
-**Virtual Environment Creation Failed**
+**No IDEs Found**
 ```
-Error: Command '['/path/to/.venv/bin/python', '-m', 'ensurepip', '--upgrade', '--default-pip']' returned non-zero exit status 1
+No JetBrains or VSCode installations found
 ```
-Try installing the venv module:
-```bash
-# On Ubuntu/Debian
-sudo apt install python3-venv
+- Make sure your IDEs are installed in standard locations
+- Run `augment-vip status` to see what the tool detects
+- Some portable installations may not be detected
 
-# On Fedora/RHEL
-sudo dnf install python3-venv
+**File Locking Issues**
 ```
+Failed to lock file
+```
+- On Windows: Ensure no antivirus is interfering
+- On macOS/Linux: Check file permissions and directory access
+
+**Database Access Issues**
+```
+Failed to clean database
+```
+- Ensure VS Code is completely closed
+- Check that database files aren't being used by other processes
+
+## 🔧 Command Reference
+
+| Command | Description |
+|---------|-------------|
+| `augment-vip status` | Show detected IDEs and configuration |
+| `augment-vip modify-ids` | Modify all IDE telemetry IDs |
+| `augment-vip jetbrains` | JetBrains IDEs only |
+| `augment-vip vscode` | VS Code variants only |
+| `augment-vip clean` | Clean VS Code databases |
+| `augment-vip all` | Run all tools |
+
+### Modify IDs Options
+
+| Option | Description |
+|--------|-------------|
+| `--jetbrains` | Process JetBrains IDEs only |
+| `--vscode` | Process VS Code variants only |
+| `--legacy` | Use legacy single VS Code mode |
+
+### All Command Options
+
+| Option | Description |
+|--------|-------------|
+| `--jetbrains-only` | Process JetBrains IDEs only |
+| `--vscode-only` | Process VS Code variants only |
+| `--skip-clean` | Skip database cleaning step |
 
 ## 🤝 Contributing
 

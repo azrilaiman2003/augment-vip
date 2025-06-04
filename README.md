@@ -1,19 +1,21 @@
 # Augment VIP
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-green.svg)
 
-A utility toolkit for Augment VIP users, providing tools to manage and clean VS Code databases. Now with Python-based cross-platform compatibility!
+A comprehensive utility toolkit for managing telemetry IDs and cleaning databases across multiple IDEs. Now supports JetBrains IDEs, VS Code variants, and provides excellent cross-platform compatibility!
 
 ## 🚀 Features
 
+- **Multi-IDE Support**: JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, etc.) and VS Code variants (VS Code, Cursor, VSCodium, etc.)
 - **Database Cleaning**: Remove Augment-related entries from VS Code databases
-- **Telemetry ID Modification**: Generate random telemetry IDs for VS Code to enhance privacy
+- **Telemetry ID Modification**: Generate random telemetry IDs to enhance privacy across multiple IDEs
 - **Cross-Platform Support**: Works on Windows, macOS, and Linux
-- **Python-Based**: Uses Python for better cross-platform compatibility
+- **Python-Based**: Uses Python for better cross-platform compatibility and no external system dependencies
 - **Virtual Environment**: Isolates dependencies to avoid conflicts
-- **Safe Operations**: Creates backups before making any changes
-- **User-Friendly**: Clear, color-coded output and detailed status messages
+- **Safe Operations**: Creates backups before making changes and locks modified files
+- **Flexible CLI**: Choose specific IDEs or run on all detected installations
+- **Status Detection**: See which IDEs are detected on your system
 
 ## 📋 Requirements
 

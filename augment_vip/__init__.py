@@ -1,5 +1,5 @@
 """
-Augment VIP - Tools for managing VS Code settings
+Augment VIP - Tools for managing IDE settings across JetBrains IDEs, VS Code variants, and more
 """
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
