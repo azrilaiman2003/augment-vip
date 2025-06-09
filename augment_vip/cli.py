@@ -87,15 +87,39 @@ def clean(ide, auto):
         
         ide_key, ide_name, base_path = selected
         
-        if not is_operation_supported(ide_key, "clean"):
-            error(f"Clean operation not supported for {ide_name}")
-            sys.exit(1)
-        
-        if clean_ide_db(ide_key, base_path):
-            success(f"Successfully cleaned {ide_name}")
+        # Handle "process all" option
+        if ide_key == "__ALL__":
+            info("Processing all detected IDEs...")
+            installed_ides = detect_installed_ides()
+            success_count = 0
+            
+            for single_ide_key, single_ide_name, single_base_path in installed_ides:
+                if is_operation_supported(single_ide_key, "clean"):
+                    info(f"Cleaning {single_ide_name}...")
+                    if clean_ide_db(single_ide_key, single_base_path):
+                        success(f"Successfully cleaned {single_ide_name}")
+                        success_count += 1
+                    else:
+                        error(f"Failed to clean {single_ide_name}")
+                else:
+                    warning(f"Clean operation not supported for {single_ide_name}")
+            
+            if success_count > 0:
+                success(f"Successfully cleaned {success_count} IDE(s)")
+            else:
+                error("No IDEs were cleaned successfully")
+                sys.exit(1)
         else:
-            error(f"Failed to clean {ide_name}")
-            sys.exit(1)
+            # Handle single IDE selection
+            if not is_operation_supported(ide_key, "clean"):
+                error(f"Clean operation not supported for {ide_name}")
+                sys.exit(1)
+            
+            if clean_ide_db(ide_key, base_path):
+                success(f"Successfully cleaned {ide_name}")
+            else:
+                error(f"Failed to clean {ide_name}")
+                sys.exit(1)
 
 @cli.command()
 @click.option('--ide', type=str, help='IDE to modify (e.g., vscode, cursor)')
@@ -163,16 +187,40 @@ def modify_ids(ide, auto):
         
         ide_key, ide_name, base_path = selected
         
-        if not is_operation_supported(ide_key, "modify_ids"):
-            error(f"Telemetry ID modification not supported for {ide_name}")
-            error("This operation is only supported for VS Code-based editors")
-            sys.exit(1)
-        
-        if modify_ide_telemetry_ids(ide_key, base_path):
-            success(f"Successfully modified telemetry IDs for {ide_name}")
+        # Handle "process all" option
+        if ide_key == "__ALL__":
+            info("Processing all detected IDEs...")
+            installed_ides = detect_installed_ides()
+            success_count = 0
+            
+            for single_ide_key, single_ide_name, single_base_path in installed_ides:
+                if is_operation_supported(single_ide_key, "modify_ids"):
+                    info(f"Modifying telemetry IDs for {single_ide_name}...")
+                    if modify_ide_telemetry_ids(single_ide_key, single_base_path):
+                        success(f"Successfully modified telemetry IDs for {single_ide_name}")
+                        success_count += 1
+                    else:
+                        error(f"Failed to modify telemetry IDs for {single_ide_name}")
+                else:
+                    warning(f"Telemetry ID modification not supported for {single_ide_name}")
+            
+            if success_count > 0:
+                success(f"Successfully modified telemetry IDs for {success_count} IDE(s)")
+            else:
+                error("No IDE telemetry IDs were modified successfully")
+                sys.exit(1)
         else:
-            error(f"Failed to modify telemetry IDs for {ide_name}")
-            sys.exit(1)
+            # Handle single IDE selection
+            if not is_operation_supported(ide_key, "modify_ids"):
+                error(f"Telemetry ID modification not supported for {ide_name}")
+                error("This operation is only supported for VS Code-based editors")
+                sys.exit(1)
+            
+            if modify_ide_telemetry_ids(ide_key, base_path):
+                success(f"Successfully modified telemetry IDs for {ide_name}")
+            else:
+                error(f"Failed to modify telemetry IDs for {ide_name}")
+                sys.exit(1)
 
 @cli.command()
 @click.option('--ide', type=str, help='IDE to process (e.g., vscode, cursor, intellij)')
@@ -263,24 +311,62 @@ def all(ide, auto):
         
         ide_key, ide_name, base_path = selected
         
-        clean_result = False
-        modify_result = False
-        
-        if is_operation_supported(ide_key, "clean"):
-            info(f"Cleaning {ide_name}...")
-            clean_result = clean_ide_db(ide_key, base_path)
-        
-        if is_operation_supported(ide_key, "modify_ids"):
-            info(f"Modifying telemetry IDs for {ide_name}...")
-            modify_result = modify_ide_telemetry_ids(ide_key, base_path)
-        
-        if clean_result and modify_result:
-            success(f"All operations completed successfully for {ide_name}")
-        elif clean_result or modify_result:
-            success(f"Some operations completed successfully for {ide_name}")
+        # Handle "process all" option
+        if ide_key == "__ALL__":
+            info("Processing all detected IDEs...")
+            installed_ides = detect_installed_ides()
+            success_count = 0
+            
+            for single_ide_key, single_ide_name, single_base_path in installed_ides:
+                info(f"Processing {single_ide_name}...")
+                
+                clean_result = False
+                modify_result = False
+                
+                if is_operation_supported(single_ide_key, "clean"):
+                    info(f"Cleaning {single_ide_name}...")
+                    clean_result = clean_ide_db(single_ide_key, single_base_path)
+                    if clean_result:
+                        success(f"Successfully cleaned {single_ide_name}")
+                    else:
+                        error(f"Failed to clean {single_ide_name}")
+                
+                if is_operation_supported(single_ide_key, "modify_ids"):
+                    info(f"Modifying telemetry IDs for {single_ide_name}...")
+                    modify_result = modify_ide_telemetry_ids(single_ide_key, single_base_path)
+                    if modify_result:
+                        success(f"Successfully modified telemetry IDs for {single_ide_name}")
+                    else:
+                        error(f"Failed to modify telemetry IDs for {single_ide_name}")
+                
+                if clean_result or modify_result:
+                    success_count += 1
+            
+            if success_count > 0:
+                success(f"Successfully processed {success_count} IDE(s)")
+            else:
+                error("No IDEs were processed successfully")
+                sys.exit(1)
         else:
-            error(f"All operations failed for {ide_name}")
-            sys.exit(1)
+            # Handle single IDE selection
+            clean_result = False
+            modify_result = False
+            
+            if is_operation_supported(ide_key, "clean"):
+                info(f"Cleaning {ide_name}...")
+                clean_result = clean_ide_db(ide_key, base_path)
+            
+            if is_operation_supported(ide_key, "modify_ids"):
+                info(f"Modifying telemetry IDs for {ide_name}...")
+                modify_result = modify_ide_telemetry_ids(ide_key, base_path)
+            
+            if clean_result and modify_result:
+                success(f"All operations completed successfully for {ide_name}")
+            elif clean_result or modify_result:
+                success(f"Some operations completed successfully for {ide_name}")
+            else:
+                error(f"All operations failed for {ide_name}")
+                sys.exit(1)
 
 @cli.command()
 def list_ides():

@@ -41,7 +41,7 @@ log_error() {
 }
 
 # Repository information
-REPO_URL="https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development"
+REPO_URL="https://raw.githubusercontent.com/azrilaiman2003/augment-vip/main"
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

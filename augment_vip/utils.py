@@ -348,6 +348,7 @@ def select_ide_interactive() -> Optional[Tuple[str, str, Path]]:
     print("AUGMENT VIP - IDE SELECTOR")
     print("="*50)
     print("Detected IDEs:")
+    print()
     
     for i, (ide_key, ide_name, base_path) in enumerate(installed_ides, 1):
         operations = ", ".join(IDE_CONFIGS[ide_key]["supported_operations"])
@@ -356,24 +357,34 @@ def select_ide_interactive() -> Optional[Tuple[str, str, Path]]:
         print(f"   Operations: {operations}")
         print()
     
+    print("Additional Options:")
+    print(f"{len(installed_ides) + 1}. Process ALL detected IDEs automatically")
     print("0. Cancel")
     print("-" * 50)
     
     while True:
         try:
-            choice = input("Select an IDE (enter number): ").strip()
+            choice = input("Select an IDE or option (enter number): ").strip()
             
             if choice == "0":
                 info("Operation cancelled")
                 return None
             
             choice_num = int(choice)
+            
+            # Single IDE selection
             if 1 <= choice_num <= len(installed_ides):
                 selected = installed_ides[choice_num - 1]
                 success(f"Selected: {selected[1]}")
                 return selected
+            
+            # Process all IDEs option
+            elif choice_num == len(installed_ides) + 1:
+                success("Selected: Process ALL detected IDEs")
+                return ("__ALL__", "All Detected IDEs", None)
+            
             else:
-                error(f"Please enter a number between 0 and {len(installed_ides)}")
+                error(f"Please enter a number between 0 and {len(installed_ides) + 1}")
                 
         except ValueError:
             error("Please enter a valid number")
