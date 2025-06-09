@@ -34,7 +34,7 @@ Last Tested : 4 June 2025 1:50PM GMT8+
 You can install with a single command using curl:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh -o install.sh && chmod +x install.sh && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/main/install.sh -o install.sh && chmod +x install.sh && ./install.sh
 ```
 
 This will:
@@ -54,16 +54,16 @@ You can also run the installation script with options to automatically run the c
 
 ```bash
 # Install and run database cleaning on all detected IDEs
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh -o install.sh && chmod +x install.sh && ./install.sh --clean
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/python/install.sh -o install.sh && chmod +x install.sh && ./install.sh --clean
 
 # Install and modify telemetry IDs for all supported IDEs
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh -o install.sh && chmod +x install.sh && ./install.sh --modify-ids
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/python/install.sh -o install.sh && chmod +x install.sh && ./install.sh --modify-ids
 
 # Install and run all tools on all detected IDEs
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh -o install.sh && chmod +x install.sh && ./install.sh --all
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/python/install.sh -o install.sh && chmod +x install.sh && ./install.sh --all
 
 # Show help
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh -o install.sh && chmod +x install.sh && ./install.sh --help
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/python/install.sh -o install.sh && chmod +x install.sh && ./install.sh --help
 ```
 
 ### Repository Install
@@ -200,7 +200,7 @@ augment-vip all --ide vscode
 
 ```bash
 # Install and immediately clean all detected IDEs
-curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/development/install.sh | bash -s -- --clean
+curl -fsSL https://raw.githubusercontent.com/azrilaiman2003/augment-vip/main/install.sh | bash -s -- --clean
 ```
 
 ### Example 2: Interactive IDE Selection
