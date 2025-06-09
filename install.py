@@ -3,7 +3,7 @@
 Installer script for Augment VIP
 
 This script sets up a virtual environment and installs the Augment VIP package.
-It works on Windows, macOS, and Linux.
+It works on Windows, macOS, and Linux with support for multiple IDEs.
 """
 
 import os
@@ -93,19 +93,20 @@ def install_package(venv_path, package_path="."):
         error(f"Failed to install package: {e}")
         return False
 
-def run_command(venv_path, command):
+def run_command(venv_path, command_args):
     """Run a command in the virtual environment"""
     if platform.system() == "Windows":
-        script_path = venv_path / "Scripts" / f"{command}.exe"
+        script_path = venv_path / "Scripts" / "augment-vip.exe"
     else:
-        script_path = venv_path / "bin" / command
+        script_path = venv_path / "bin" / "augment-vip"
 
     if not script_path.exists():
-        error(f"Command not found: {command}")
+        error(f"Command not found: augment-vip")
         return False
 
     try:
-        subprocess.check_call([str(script_path)])
+        full_command = [str(script_path)] + command_args
+        subprocess.check_call(full_command)
         return True
     except subprocess.CalledProcessError as e:
         error(f"Command failed: {e}")
@@ -113,14 +114,14 @@ def run_command(venv_path, command):
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description="Install Augment VIP")
-    parser.add_argument("--clean", action="store_true", help="Run database cleaning after installation")
-    parser.add_argument("--modify-ids", action="store_true", help="Run telemetry ID modification after installation")
-    parser.add_argument("--all", action="store_true", help="Run all tools after installation")
+    parser = argparse.ArgumentParser(description="Install Augment VIP (Multi-IDE Version)")
+    parser.add_argument("--clean", action="store_true", help="Run database cleaning on all detected IDEs after installation")
+    parser.add_argument("--modify-ids", action="store_true", help="Run telemetry ID modification on all supported IDEs after installation")
+    parser.add_argument("--all", action="store_true", help="Run all tools on all detected IDEs after installation")
     parser.add_argument("--no-prompt", action="store_true", help="Don't prompt for actions after installation")
     args = parser.parse_args()
 
-    info("Starting installation process for Augment VIP")
+    info("Starting installation process for Augment VIP (Multi-IDE Version)")
 
     # Check Python version
     check_python_version()
@@ -141,12 +142,12 @@ def main():
 
     # Run commands if requested via command line arguments
     if args.clean or args.all:
-        info("Running database cleaning...")
-        run_command(venv_path, "augment-vip clean")
+        info("Running database cleaning on all detected IDEs...")
+        run_command(venv_path, ["clean", "--auto"])
 
     if args.modify_ids or args.all:
-        info("Running telemetry ID modification...")
-        run_command(venv_path, "augment-vip modify-ids")
+        info("Running telemetry ID modification on all supported IDEs...")
+        run_command(venv_path, ["modify-ids", "--auto"])
 
     # Print usage information
     if platform.system() == "Windows":
@@ -154,10 +155,39 @@ def main():
     else:
         cmd_path = f"{venv_path}/bin/augment-vip"
 
+    print()
+    print("=" * 60)
+    print("                    USAGE INFORMATION")
+    print("=" * 60)
+    print()
     info("You can now use Augment VIP with the following commands:")
-    info(f"  {cmd_path} clean       - Clean VS Code databases")
-    info(f"  {cmd_path} modify-ids  - Modify telemetry IDs")
-    info(f"  {cmd_path} all         - Run all tools")
+    print()
+    info("List supported IDEs and their installation status:")
+    info(f"  {cmd_path} list-ides")
+    print()
+    info("Clean databases (interactive IDE selection):")
+    info(f"  {cmd_path} clean")
+    print()
+    info("Clean all detected IDEs automatically:")
+    info(f"  {cmd_path} clean --auto")
+    print()
+    info("Clean specific IDE:")
+    info(f"  {cmd_path} clean --ide vscode")
+    info(f"  {cmd_path} clean --ide cursor")
+    info(f"  {cmd_path} clean --ide intellij")
+    print()
+    info("Modify telemetry IDs (VS Code-based editors only):")
+    info(f"  {cmd_path} modify-ids")
+    info(f"  {cmd_path} modify-ids --auto")
+    print()
+    info("Run all operations:")
+    info(f"  {cmd_path} all")
+    info(f"  {cmd_path} all --auto")
+    print()
+    info("Supported IDEs:")
+    info("  - VS Code, VS Code Insiders, Cursor, VSCodium (full support)")
+    info("  - IntelliJ IDEA, PyCharm, WebStorm, PhpStorm (cleaning only)")
+    print()
 
 if __name__ == "__main__":
     main()

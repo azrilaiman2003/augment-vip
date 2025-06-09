@@ -159,29 +159,127 @@ run_python_installer() {
 
 # Display help message
 show_help() {
-    echo "Augment VIP Installation Script (Python Version)"
+    echo "Augment VIP Installation Script (Multi-IDE Version)"
     echo
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  --help          Show this help message"
-    echo "  --clean         Run database cleaning script after installation"
-    echo "  --modify-ids    Run telemetry ID modification script after installation"
-    echo "  --all           Run all scripts (clean and modify IDs)"
+    echo "  --clean         Run database cleaning on all detected IDEs after installation"
+    echo "  --modify-ids    Run telemetry ID modification on all supported IDEs after installation"
+    echo "  --all           Run all tools on all detected IDEs"
+    echo
+    echo "Supported IDEs:"
+    echo "  - Visual Studio Code, VS Code Insiders, Cursor, VSCodium (full support)"
+    echo "  - IntelliJ IDEA, PyCharm, WebStorm, PhpStorm (cleaning only)"
     echo
     echo "Example: $0 --all"
 }
 
+# Run IDE detection and user prompts
+run_ide_operations() {
+    local operation="$1"
+    
+    # Get the path to the augment-vip command
+    if [ "$PYTHON_CMD" = "python3" ]; then
+        AUGMENT_CMD="$PROJECT_ROOT/.venv/bin/augment-vip"
+    else
+        if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then
+            AUGMENT_CMD="$PROJECT_ROOT/.venv/Scripts/augment-vip.exe"
+        else
+            AUGMENT_CMD="$PROJECT_ROOT/.venv/bin/augment-vip"
+        fi
+    fi
+
+    # First, show what IDEs are installed
+    echo
+    log_info "Scanning for installed IDEs..."
+    "$AUGMENT_CMD" list-ides
+
+    echo
+    case "$operation" in
+        "clean")
+            log_info "Database cleaning will remove target entries from IDE databases and configuration files."
+            echo
+            read -p "Would you like to clean all detected IDEs automatically? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Running automatic database cleaning on all detected IDEs..."
+                "$AUGMENT_CMD" clean --auto
+            else
+                echo
+                read -p "Would you like to select an IDE interactively? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    log_info "Running interactive IDE selection for cleaning..."
+                    "$AUGMENT_CMD" clean
+                fi
+            fi
+            ;;
+        "modify-ids")
+            log_info "Telemetry ID modification will generate new random IDs for VS Code-based editors."
+            echo
+            read -p "Would you like to modify telemetry IDs for all supported IDEs automatically? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Running automatic telemetry ID modification on all supported IDEs..."
+                "$AUGMENT_CMD" modify-ids --auto
+            else
+                echo
+                read -p "Would you like to select an IDE interactively? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    log_info "Running interactive IDE selection for telemetry ID modification..."
+                    "$AUGMENT_CMD" modify-ids
+                fi
+            fi
+            ;;
+        "all")
+            log_info "This will run all supported operations on detected IDEs."
+            echo
+            read -p "Would you like to process all detected IDEs automatically? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Running all operations on all detected IDEs..."
+                "$AUGMENT_CMD" all --auto
+            else
+                echo
+                read -p "Would you like to select an IDE interactively? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    log_info "Running interactive IDE selection for all operations..."
+                    "$AUGMENT_CMD" all
+                fi
+            fi
+            ;;
+    esac
+}
+
 # Main installation function
 main() {
-    # Parse command line arguments for help
+    # Parse command line arguments
+    INSTALL_CLEAN=false
+    INSTALL_MODIFY_IDS=false
+    INSTALL_ALL=false
+
     for arg in "$@"; do
-        if [[ "$arg" == "--help" ]]; then
-            show_help
-            exit 0
-        fi
+        case "$arg" in
+            "--help")
+                show_help
+                exit 0
+                ;;
+            "--clean")
+                INSTALL_CLEAN=true
+                ;;
+            "--modify-ids")
+                INSTALL_MODIFY_IDS=true
+                ;;
+            "--all")
+                INSTALL_ALL=true
+                ;;
+        esac
     done
 
-    log_info "Starting installation process for Augment VIP (Python Version)"
+    log_info "Starting installation process for Augment VIP (Multi-IDE Version)"
 
     # Check for Python
     check_python
@@ -189,8 +287,8 @@ main() {
     # Download Python installer
     download_python_installer
 
-    # Run Python installer with all arguments passed to this script plus --no-prompt
-    run_python_installer "$@" --no-prompt
+    # Run Python installer with --no-prompt to avoid double prompting
+    run_python_installer --no-prompt
 
     # Get the path to the augment-vip command
     if [ "$PYTHON_CMD" = "python3" ]; then
@@ -203,28 +301,88 @@ main() {
         fi
     fi
 
-    # Prompt user to clean database
-    echo
-    read -p "Would you like to clean VS Code databases now? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        log_info "Running database cleaning..."
-        "$AUGMENT_CMD" clean
+    # Handle command line options
+    if [ "$INSTALL_ALL" = true ]; then
+        log_info "Running all operations on all detected IDEs (from --all flag)..."
+        "$AUGMENT_CMD" all --auto
+    elif [ "$INSTALL_CLEAN" = true ]; then
+        log_info "Running database cleaning on all detected IDEs (from --clean flag)..."
+        "$AUGMENT_CMD" clean --auto
+    elif [ "$INSTALL_MODIFY_IDS" = true ]; then
+        log_info "Running telemetry ID modification on all supported IDEs (from --modify-ids flag)..."
+        "$AUGMENT_CMD" modify-ids --auto
+    else
+        # Interactive mode - show options
+        echo
+        echo "============================================================"
+        echo "                    AUGMENT VIP INSTALLED"
+        echo "============================================================"
+        echo
+        log_success "Installation completed successfully!"
+        
+        # Show detected IDEs
+        "$AUGMENT_CMD" list-ides
+        
+        echo
+        echo "What would you like to do?"
+        echo "1) Clean databases on all detected IDEs"
+        echo "2) Modify telemetry IDs for supported IDEs"  
+        echo "3) Run all operations on detected IDEs"
+        echo "4) Exit (you can run commands manually later)"
+        echo
+        read -p "Enter your choice (1-4): " -n 1 -r
+        echo
+        echo
+        
+        case $REPLY in
+            1)
+                run_ide_operations "clean"
+                ;;
+            2)
+                run_ide_operations "modify-ids"
+                ;;
+            3)
+                run_ide_operations "all"
+                ;;
+            4)
+                log_info "Skipping automatic operations."
+                ;;
+            *)
+                log_warning "Invalid choice. Skipping automatic operations."
+                ;;
+        esac
     fi
 
-    # Prompt user to modify telemetry IDs
+    # Show usage information
     echo
-    read -p "Would you like to modify VS Code telemetry IDs now? (y/n) " -n 1 -r
+    echo "============================================================"
+    echo "                     USAGE INFORMATION"
+    echo "============================================================"
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        log_info "Running telemetry ID modification..."
-        "$AUGMENT_CMD" modify-ids
-    fi
-
     log_info "You can now use Augment VIP with the following commands:"
-    log_info "  $AUGMENT_CMD clean       - Clean VS Code databases"
-    log_info "  $AUGMENT_CMD modify-ids  - Modify telemetry IDs"
-    log_info "  $AUGMENT_CMD all         - Run all tools"
+    log_info ""
+    log_info "List supported IDEs:"
+    log_info "  $AUGMENT_CMD list-ides"
+    log_info ""
+    log_info "Clean databases (interactive):"
+    log_info "  $AUGMENT_CMD clean"
+    log_info ""
+    log_info "Clean all detected IDEs automatically:"
+    log_info "  $AUGMENT_CMD clean --auto"
+    log_info ""
+    log_info "Clean specific IDE:"
+    log_info "  $AUGMENT_CMD clean --ide vscode"
+    log_info "  $AUGMENT_CMD clean --ide cursor"
+    log_info "  $AUGMENT_CMD clean --ide intellij"
+    log_info ""
+    log_info "Modify telemetry IDs (VS Code-based editors):"
+    log_info "  $AUGMENT_CMD modify-ids"
+    log_info "  $AUGMENT_CMD modify-ids --auto"
+    log_info ""
+    log_info "Run all operations:"
+    log_info "  $AUGMENT_CMD all"
+    log_info "  $AUGMENT_CMD all --auto"
+    echo
 }
 
 # Execute main function
