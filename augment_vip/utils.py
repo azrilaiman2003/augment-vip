@@ -12,6 +12,7 @@ import shutil
 import base64
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
+# Import moved to function to avoid circular import
 
 # Console colors
 try:
@@ -338,36 +339,55 @@ def select_ide_interactive() -> Optional[Tuple[str, str, Path]]:
     installed_ides = detect_installed_ides()
     
     if not installed_ides:
-        error("No supported IDEs found on your system")
-        info("Supported IDEs:")
+        click.echo(click.style("❌ No supported IDEs found on your system", fg='red', bold=True))
+        click.echo()
+        click.echo(click.style("📋 Supported IDEs:", fg='cyan', bold=True))
         for ide_key, config in IDE_CONFIGS.items():
-            info(f"  - {config['name']}")
+            click.echo(click.style(f"  • {config['name']}", fg='white'))
         return None
     
-    print("\n" + "="*50)
-    print("AUGMENT VIP - IDE SELECTOR")
-    print("="*50)
-    print("Detected IDEs:")
-    print()
+    # Modern header with beautiful styling
+    click.echo()
+    click.echo(click.style("╔════════════════════════════════════════════════════════════════════════════╗", fg='blue', bold=True))
+    click.echo(click.style("║                          🎮 IDE SELECTOR                                  ║", fg='blue', bold=True))
+    click.echo(click.style("║                      Choose Your Target IDE                               ║", fg='blue', bold=True))
+    click.echo(click.style("╚════════════════════════════════════════════════════════════════════════════╝", fg='blue', bold=True))
+    click.echo()
     
+    click.echo(click.style("🎯 Detected IDEs:", fg='cyan', bold=True))
+    click.echo()
+    
+    # Display IDEs with modern styling
     for i, (ide_key, ide_name, base_path) in enumerate(installed_ides, 1):
-        operations = ", ".join(IDE_CONFIGS[ide_key]["supported_operations"])
-        print(f"{i}. {ide_name}")
-        print(f"   Path: {base_path}")
-        print(f"   Operations: {operations}")
-        print()
+        operations = IDE_CONFIGS[ide_key]["supported_operations"]
+        op_icons = []
+        for op in operations:
+            if op == "clean":
+                op_icons.append("🧹 Clean")
+            elif op == "modify_ids":
+                op_icons.append("🔄 Modify IDs")
+        
+        click.echo(click.style(f"  {i}. {ide_name}", fg='green', bold=True))
+        click.echo(click.style(f"     📁 {base_path}", fg='white', dim=True))
+        click.echo(click.style(f"     ⚙️  {' | '.join(op_icons)}", fg='yellow'))
+        click.echo()
     
-    print("Additional Options:")
-    print(f"{len(installed_ides) + 1}. Process ALL detected IDEs automatically")
-    print("0. Cancel")
-    print("-" * 50)
+    # Additional options with modern styling
+    click.echo(click.style("🚀 Batch Options:", fg='magenta', bold=True))
+    click.echo(click.style(f"  {len(installed_ides) + 1}. Process ALL detected IDEs automatically", fg='blue', bold=True))
+    click.echo()
+    click.echo(click.style("❌ Cancel Option:", fg='red', bold=True))
+    click.echo(click.style(f"  0. Cancel operation", fg='red'))
+    
+    # Modern separator
+    click.echo(click.style("─" * 80, fg='blue'))
     
     while True:
         try:
-            choice = input("Select an IDE or option (enter number): ").strip()
+            choice = input(click.style("➤ Select an option (enter number): ", fg='cyan', bold=True)).strip()
             
             if choice == "0":
-                info("Operation cancelled")
+                click.echo(click.style("🚫 Operation cancelled", fg='yellow', bold=True))
                 return None
             
             choice_num = int(choice)
@@ -375,22 +395,24 @@ def select_ide_interactive() -> Optional[Tuple[str, str, Path]]:
             # Single IDE selection
             if 1 <= choice_num <= len(installed_ides):
                 selected = installed_ides[choice_num - 1]
-                success(f"Selected: {selected[1]}")
+                click.echo(click.style(f"✅ Selected: {selected[1]}", fg='green', bold=True))
+                click.echo()
                 return selected
             
             # Process all IDEs option
             elif choice_num == len(installed_ides) + 1:
-                success("Selected: Process ALL detected IDEs")
+                click.echo(click.style("🚀 Selected: Process ALL detected IDEs", fg='green', bold=True))
+                click.echo()
                 return ("__ALL__", "All Detected IDEs", None)
             
             else:
-                error(f"Please enter a number between 0 and {len(installed_ides) + 1}")
+                click.echo(click.style(f"❌ Invalid selection! Please enter a number between 0 and {len(installed_ides) + 1}", fg='red', bold=True))
                 
         except ValueError:
-            error("Please enter a valid number")
+            click.echo(click.style("❌ Invalid input! Please enter a valid number", fg='red', bold=True))
         except KeyboardInterrupt:
-            print("\n")
-            info("Operation cancelled")
+            click.echo()
+            click.echo(click.style("🚫 Operation cancelled", fg='yellow', bold=True))
             return None
 
 def get_ide_paths(ide_key: str, base_path: Path) -> Dict[str, Path]:
