@@ -325,26 +325,44 @@ main() {
         
         echo
         echo "What would you like to do?"
-        echo "1) Clean databases on all detected IDEs"
-        echo "2) Modify telemetry IDs for supported IDEs"  
-        echo "3) Run all operations on detected IDEs"
-        echo "4) Exit (you can run commands manually later)"
+        echo "1) Clean databases (interactive IDE selection)"
+        echo "2) Clean databases on all detected IDEs"
+        echo "3) Modify telemetry IDs (interactive IDE selection)"
+        echo "4) Modify telemetry IDs for all supported IDEs"  
+        echo "5) Run all operations (interactive IDE selection)"
+        echo "6) Run all operations on all detected IDEs"
+        echo "7) Exit (you can run commands manually later)"
         echo
-        read -p "Enter your choice (1-4): " -n 1 -r
+        read -p "Enter your choice (1-7): " -n 1 -r
         echo
         echo
         
         case $REPLY in
             1)
-                run_ide_operations "clean"
+                log_info "Running interactive cleaning (you can select specific IDEs)..."
+                "$AUGMENT_CMD" clean
                 ;;
             2)
-                run_ide_operations "modify-ids"
+                log_info "Running database cleaning on all detected IDEs..."
+                "$AUGMENT_CMD" clean --auto
                 ;;
             3)
-                run_ide_operations "all"
+                log_info "Running interactive telemetry ID modification (you can select specific IDEs)..."
+                "$AUGMENT_CMD" modify-ids
                 ;;
             4)
+                log_info "Running telemetry ID modification on all supported IDEs..."
+                "$AUGMENT_CMD" modify-ids --auto
+                ;;
+            5)
+                log_info "Running all operations interactively (you can select specific IDEs)..."
+                "$AUGMENT_CMD" all
+                ;;
+            6)
+                log_info "Running all operations on all detected IDEs..."
+                "$AUGMENT_CMD" all --auto
+                ;;
+            7)
                 log_info "Skipping automatic operations."
                 ;;
             *)
